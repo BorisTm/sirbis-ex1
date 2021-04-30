@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <style>
+        body {
+            margin: 0;
+            min-width: 250px;
+        }
+
+        .divTableClass table.center {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        {#.divTableClass table, th, td {#}
+        .divTableClass table {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        .divTableClass th {
+            background: #eee;
+            font-size: 16px;
+        }
+
+        .divTableClass th, td {
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        /* Set all odd table rows to a different color (zebra-stripes) */
+        .divTableClass tr:nth-child(odd) {
+            background: #f9f9f9;
+        }
+
+        .divTableClass th:hover {
+            background: #ddd;
+        }
+
+        .divTableClass td:hover {
+            background: #ddd;
+        }
+
+        {#????#}
+        /* Style the header */
+        .todo_header {
+            background-color: #cee6f6;
+            padding: 30px 40px;
+            color: black;
+            text-align: center;
+        }
+
+        {#????#}
+        /* Clear floats after the header */
+        .todo_header:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+
+    <form id="addToDo" action="" method="post">
+        {% csrf_token %} <!-- csrf token for basic security -->
+
+        <div id="myDIV" class="todo_header">
+            <h2 style="margin:5px">ToDo App</h2>
+
+            <div class="inputContainer">
+                <table align="center">
+                    <tr align="left">
+                        <td><label for="description">Description:</label></td>
+                        <td><input type="text" id="description" class="taskName" placeholder="ToDo name"
+                                   name="description" required></td>
+                        <input type="hidden" name="hiddenId" value="unknown">
+                        <input type="hidden" name="hiddenCompleted" value="unknown">
+                    </tr>
+                    <tr align="left">
+                        <td><label for="category">Category:</label></td>
+                        <td>
+                            <i class="fa fa-caret-down selectArrow"></i>
+                            <select id="category" class="taskCategory" name="category_select" required>
+                                <option class="disabled" value="">Choose a category</option>
+                                {% for category in categories %}
+                                    <option class="" value="{{ category.name }}"
+                                            name="{{ category.name }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr align="left">
+                        <td><label for="dueDate">Due Date: </label></td>
+                        <td><input type="date" id="dueDate" class="taskDate" name="dueDate" required></td>
+                    </tr>
+                    <tr align="center">
+                        <td>
+                            <button class="taskAdd" name="taskAdd" type="submit">Add task</button>
+                        </td>
+                        <td>
+                            <button class="taskDelete" id="btnDelete" name="taskDelete" formnovalidate="" type="submit"
+                                    disabled onclick="$('input#sublist').click();">Delete task</button>
+                        </td>
+                        <td>
+                            <button class="taskUpdate" id="btnLoad" name = "taskUpdate" disabled formnovalidate="" type = "submit">Update task</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="divTableId" class="divTableClass">
+            <table class="center">
+                <tr>
+                    <th>Select task</th>
+                    <th>Id</th>
+                    <th>Title</th>
+                    {#                    <th>Content</th>#}
+                    <th>Created</th>
+                    <th>Due Date</th>
+                    <th>Category</th>
+                    <th>Completed</th>
+                </tr>
+                {% for todo in todos %}
+                    <tr>
+                        <td><input type="radio" name="rbSelectTask"
+                                   hiddenId="{{ todo.id }}"
+                                   hiddenTitle="{{ todo.title }}" hiddenCategory="{{ todo.category }}"
+                                   hiddenDueDate="{{ todo.due_date }}"
+                                   onclick="EnableDisableButtonsDeleteUpdate(this)">
+                        </td>
+                        <td>{{ todo.id }}</td>
+                        <td>{{ todo.title }}</td>
+                        {#                        <td>{{ todo.content }}</td>#}
+                        <td>{{ todo.created }}</td>
+                        <td>{{ todo.due_date }}</td>
+                        <td>{{ todo.category }}</td>
+                        {% if todo.completed %}
+                            <td>
+                                <input type="checkbox" checked hiddenId="{{ todo.id }}" onchange="PostCompleted(this)">
+                            </td>
+                        {% else %}
+                            <td>
+                                <input type="checkbox" hiddenId="{{ todo.id }}" onchange="PostCompleted(this)">
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        function EnableDisableButtonsDeleteUpdate(radio) {
+            let btnDelete = document.getElementById("btnDelete");
+            btnDelete.disabled = !radio.checked;
+            let btnLoad = document.getElementById("btnLoad");
+            btnLoad.disabled = !radio.checked;
+            if (radio.checked) {
+                document.getElementsByName("hiddenId")[0].value = radio.getAttribute("hiddenId");
+                document.getElementById("description").value = radio.getAttribute("hiddenTitle");
+                document.getElementById("category").value = radio.getAttribute("hiddenCategory");
+                let stringDueDate = radio.getAttribute("hiddenDueDate");
+                let dueDate = new Date(stringDueDate)
+                const offset = dueDate.getTimezoneOffset()
+                dueDate = new Date(dueDate.getTime() - (offset*60*1000))
+                document.getElementById("dueDate").value = dueDate.toISOString().split('T')[0];
+                //radio.checked = false;
+                {#document.getElementById("dueDate").focus();#}
+                {#radio.checked = true;#}
+                {#document.getElementById("dueDate").focus();#}
+            }
+        }
+
+        function PostCompleted(checkbox) {
+            document.getElementsByName("hiddenId")[0].value = checkbox.getAttribute("hiddenId");
+
+            var input = document.createElement("input");
+            input.setAttribute("id", "hiddenInputId");
+            input.setAttribute("type", "hidden");
+            input.setAttribute("name", "taskComplete");
+            document.getElementById("addToDo").appendChild(input);
+
+            if (!checkbox.checked) {
+                document.getElementsByName("hiddenCompleted")[0].value = "False";
+            } else {
+                document.getElementsByName("hiddenCompleted")[0].value = "True";
+            }
+            try {
+                document.getElementById("addToDo").submit();
+            } finally {
+                var elem = document.getElementById(hiddenInputId);
+                elem.parentNode.removeChild(elem);
+            }
+        }
+    </script>
+
+{% endblock %}

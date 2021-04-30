@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="jumbotron text-center">
+        <div class="container">
+            <a href="/" class="lang-logo">
+                <img src="{% static 'lang-logo.png' %}">
+            </a>
+            <h1>This is the 1st Sirbis app deployed to Heroku.</h1>
+            <p>This App contains some Django+JS examples</p>
+            <a type="button" class="btn btn-lg btn-default" href="../bulb"><span
+                    class="glyphicon glyphicon-flash"></span> Bulb example</a>
+            <a type="button" class="btn btn-lg btn-primary" href="../simple_todo"><span
+                    class="glyphicon glyphicon-download"></span> ToDo App</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="alert alert-info text-center" role="alert">
+            To deploy your own App, and learn the fundamentals of the Heroku platform, head over to the <a
+                href="https://devcenter.heroku.com" class="alert-link">Heroku Dev Center</a> tutorials.
+        </div>
+    </div> <!-- row -->
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="text-center">
+        <button id="find-me">Show my location</button>
+        <br/>
+        <p id="status"></p>
+        <a id="map-link" target="_blank"></a>
+
+        <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+        <link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet"/>
+        <div id="osm-map"></div>
+
+        <script>
+            function geoFindMe() {
+
+                const status = document.querySelector('#status');
+                const mapLink = document.querySelector('#map-link');
+
+                mapLink.href = '';
+                mapLink.textContent = '';
+
+                function success(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    status.textContent = '';
+                    mapLink.href = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}`;
+                    mapLink.textContent = `Click to open in new tab: Latitude: ${latitude} °, Longitude: ${longitude} °`;
+
+                    // Where you want to render the map
+                    map_div = document.getElementById('osm-map');
+
+                    // Height has to be set. It can be set in CSS too.
+                    map_div.style.height = '400px';
+                    map_div.style.width = '100%';
+
+                    // Create Leaflet map embedded in map div
+                    var map = L.map(map_div);
+
+                    // Add OSM tile leayer to the Leaflet map
+                    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    // Target's GPS coordinates.
+                    //var target = L.latLng('47.50737', '19.04611');
+                    var target = L.latLng(latitude, longitude);
+
+                    // Set map's center to target with zoom 14.
+                    map.setView(target, 17);
+
+                    // Place a marker on the same location.
+                    L.marker(target).addTo(map);
+                }
+
+                function error() {
+                    status.textContent = 'Unable to retrieve your location';
+                }
+
+                if (!navigator.geolocation) {
+                    status.textContent = 'Geolocation is not supported by your browser';
+                } else {
+                    status.textContent = 'Locating…';
+                    navigator.geolocation.getCurrentPosition(success, error);
+                }
+
+            }
+
+            document.querySelector('#find-me').addEventListener('click', geoFindMe);
+        </script>
+    </div>
+{% endblock %}
